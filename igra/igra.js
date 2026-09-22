@@ -1,69 +1,62 @@
-class Boici {
-    constructor(name, health, attack, damage,) {
-        this.name = Name;
-        this.health = Health;
-        this.attack = Attack;
-        this.damage = Damage;
-    }
+// singleton
+const storage = {
+  units: [],
+  add(u) { this.units.push(u); }
+};
 
-    hit(target) {
-        target.health -= this.attack;
-        if (target.health < 0)
-    target.health = 0;
-        console.log (`${this.name} Атакует ${target.name}. ${target.name} ${target.health} HP`);
-    }
-    class Gnom extends Boici {
-        constructor () {super ("Gnom", 70, hit, 20);}
-    } 
-
-    class Ork extends Boici {
-        constructor () {super ("Ork", 150, hit, 45);}
-    }
-
-    class Elf extends Boici {
-        constructor () {super ("Elf", 115, shoot, 30);}
-    }
-
-    class Chelovek extends Boici {
-        constructor() {super ("Chelovek", 100, hit, 45);}
-    }
-
-    class Battle {
-        static instance = null;
-
-        constructor() {
-            if (Battle.instance) return
-        Battle.instance;
-            Battle.instance = this;
-            this.chars = [];
-        }
-
-        add(c) {
-            this.chars.push(c);
-        }
-
-        start() {
-            while (this.chars.filter(c => c.health > 0).lenght > 1) {
-                for (const a of this.chars) {
-                    if (a.health <= 0) continue;
-
-                    const targets = 
-    this.chars.filter(c => c !== a && c.health > 0);
-                if (targets.lenght === 0)
-    break;
-
-                const t = 
-    targets[Math.floor(Math.random() * targets.lenght)];
-            a.hit(t);
-
-            if (t.health === 0)
-        console.log (`&{t.name} Лох, выбыл`);
-                }
-            }
-
-            const winner = this.chars.find(c => c.health > 0);
-                console.log(`${winner.name} Победил, красавчик`)
-        }
-
-    }
+class Unit {
+  constructor(name, hp, damage) {
+    this.name = name;
+    this.hp = hp;
+    this.damage = damage;
+    this._hp = hp; 
+    this._damage = damage;
+  }
+  get isAlive() { return this._hp > 0; }
+  hit(target) {
+    target._hp -= this._damage;
+    if (target._hp < 0) target._hp = 0;
+    console.log(`${this.name} бьёт ${target.name} на ${this._damage}. У ${target.name}: ${target._hp} HP`);
+  }
 }
+
+class Ork extends Unit {
+  hit(target) { // полиморфизм
+    const dmg = this._damage * 2; // орк бьёт x2
+    target._hp = Math.max(0, target._hp - dmg);
+    console.log(` ${this.name} жоска бьёт ${target.name} на ${dmg}. У ${target.name}: ${target._hp} HP`);
+  }
+}
+class Gnome extends Unit {}
+class Elf extends Unit {}
+class Human extends Unit {}
+
+function createUnit(type, name) {
+  const types = { ork: Ork, gnome: Gnome, elf: Elf, human: Human };
+  const unit = new types[type](name, 100, 20); // одинаковые статы
+  storage.add(unit);
+  return unit;
+}
+
+createUnit('ork', 'Орк');
+createUnit('gnome', 'Гномик');
+createUnit('elf', 'Ельфик');
+createUnit('human', 'Артур');
+
+// нападение
+let alive = storage.units;
+
+while (alive.length > 1) {
+  // первый рандом персонаж
+  const a = alive[0];
+  const b = alive[1 + Math.floor(Math.random() * (alive.length - 1))];
+
+  a.hit(b);
+
+  if (!b.isAlive) {
+    console.log(` ${b.name} Смерт`);
+    alive = alive.filter(u => u.isAlive);
+  }
+}
+
+console.log(`\n Победитель: ${alive[0].name}`);
