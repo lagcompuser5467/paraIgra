@@ -48,8 +48,8 @@ let alive = storage.units;
 
 while (alive.length > 1) {
   // первый рандом персонаж
-  const a = alive[0];
-  const b = alive[1 + Math.floor(Math.random() * (alive.length - 1))];
+const a = alive[Math.floor(Math.random() * alive.length)];
+const b = alive.filter(u => u !== a)[Math.floor(Math.random() * (alive.length - 1))];
 
   a.hit(b);
 
